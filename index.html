@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Récord Lector</title>
+<meta name="description" content="Juego de lectura repetida para chicos de primaria: leé el mismo texto 3 veces y superá tu propio récord.">
+<meta name="theme-color" content="#FFF4E6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fondo: #FFF4E6;
+    --tinta: #2B2540;
+    --suave: #6B6580;
+    --blanco: #FFFFFF;
+    --coral: #FF6B4A;
+    --coral-osc: #E0502F;
+    --verde: #17A398;
+    --violeta: #6C5CE7;
+    --sol: #FFC233;
+    --borde: #F0E2CF;
+    --sombra: 0 6px 0 rgba(43, 37, 64, .08), 0 12px 28px rgba(43, 37, 64, .08);
+    --radio: 24px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Lexend", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--fondo);
+    color: var(--tinta);
+    min-height: 100vh;
+    min-height: 100dvh;
+    line-height: 1.4;
+  }
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: max(16px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+  }
+  h1, h2, h3 { margin: 0; line-height: 1.15; }
+  h1 { font-size: clamp(30px, 8vw, 42px); font-weight: 800; }
+  h2 { font-size: clamp(24px, 6vw, 30px); font-weight: 800; }
+  p { margin: 0; }
+  .centro { text-align: center; }
+  .pila > * + * { margin-top: 16px; }
+  .chico { font-size: 16px; color: var(--suave); }
+
+  /* Barra de arriba */
+  .barra { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; min-height: 52px; }
+  .volver {
+    border: 0; background: var(--blanco); color: var(--tinta); font: inherit; font-size: 22px; font-weight: 800;
+    width: 52px; height: 52px; border-radius: 50%; box-shadow: var(--sombra); cursor: pointer;
+  }
+  .ficha { background: var(--blanco); border-radius: 999px; padding: 10px 16px; font-weight: 600; box-shadow: var(--sombra); white-space: nowrap; }
+
+  /* Botones */
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+    min-height: 64px; padding: 14px 22px; border: 0; border-radius: 20px; cursor: pointer;
+    font: inherit; font-size: 22px; font-weight: 800; color: var(--blanco); background: var(--coral);
+    box-shadow: 0 6px 0 var(--coral-osc); transition: transform .08s, box-shadow .08s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--coral-osc); }
+  .btn.verde { background: var(--verde); box-shadow: 0 6px 0 #0F7F76; }
+  .btn.verde:active { box-shadow: 0 2px 0 #0F7F76; }
+  .btn.violeta { background: var(--violeta); box-shadow: 0 6px 0 #4D3FC4; }
+  .btn.violeta:active { box-shadow: 0 2px 0 #4D3FC4; }
+  .btn.blanco { background: var(--blanco); color: var(--tinta); box-shadow: 0 6px 0 var(--borde); }
+  .btn.blanco:active { box-shadow: 0 2px 0 var(--borde); }
+  .link { background: none; border: 0; font: inherit; font-size: 17px; color: var(--suave); text-decoration: underline; cursor: pointer; padding: 12px; }
+  .btn:focus-visible, .volver:focus-visible, .tarjeta:focus-visible, .chip:focus-visible, .link:focus-visible, .pal:focus-visible, input:focus-visible {
+    outline: 4px solid var(--violeta); outline-offset: 3px;
+  }
+
+  /* Tarjetas */
+  .caja { background: var(--blanco); border-radius: var(--radio); padding: 22px; box-shadow: var(--sombra); }
+  .tarjeta {
+    display: flex; align-items: center; gap: 16px; width: 100%; text-align: left;
+    background: var(--blanco); border: 0; border-radius: var(--radio); padding: 16px 18px; box-shadow: var(--sombra);
+    font: inherit; color: inherit; cursor: pointer;
+  }
+  .tarjeta + .tarjeta { margin-top: 14px; }
+  .tarjeta .emoji { font-size: 40px; width: 64px; height: 64px; display: grid; place-items: center; background: var(--fondo); border-radius: 18px; flex: none; }
+  .tarjeta .tit { font-size: 21px; font-weight: 800; }
+  .estrellas { font-size: 22px; letter-spacing: 2px; }
+  .gris { filter: grayscale(1); opacity: .3; }
+
+  /* Mascota */
+  .mascota { font-size: 84px; line-height: 1; display: inline-block; animation: flota 3s ease-in-out infinite; }
+  @keyframes flota { 50% { transform: translateY(-8px); } }
+  .globo { background: var(--blanco); border-radius: 22px; padding: 16px 18px; box-shadow: var(--sombra); font-size: 20px; position: relative; }
+
+  /* Entrada de nombre */
+  input[type=text] {
+    width: 100%; font: inherit; font-size: 24px; padding: 16px 18px; border-radius: 18px;
+    border: 3px solid var(--borde); background: var(--blanco); color: var(--tinta);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .chip {
+    border: 0; background: var(--blanco); box-shadow: var(--sombra); border-radius: 999px; padding: 14px 22px;
+    font: inherit; font-size: 21px; font-weight: 600; color: var(--tinta); cursor: pointer;
+  }
+
+  /* Pestañas de nivel */
+  .pestanas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #F6E7D3; padding: 6px; border-radius: 20px; margin-bottom: 18px; }
+  .pestanas button { border: 0; border-radius: 16px; padding: 12px 8px; font: inherit; font-size: 18px; font-weight: 800; background: transparent; color: var(--suave); cursor: pointer; }
+  .pestanas button[aria-pressed=true] { background: var(--blanco); color: var(--tinta); box-shadow: 0 3px 0 var(--borde); }
+  .pestanas small { display: block; font-weight: 400; font-size: 13px; }
+
+  /* Medalla */
+  .medalla { display: flex; align-items: center; gap: 14px; }
+  .medalla .icono { font-size: 44px; }
+  .progreso { height: 14px; background: #F6E7D3; border-radius: 999px; overflow: hidden; margin-top: 8px; }
+  .progreso > i { display: block; height: 100%; background: var(--sol); border-radius: 999px; transition: width .4s; }
+
+  /* Calentamiento */
+  .grilla { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; transition: filter .2s; }
+  .grilla span { aspect-ratio: 1; display: grid; place-items: center; font-size: clamp(26px, 8vw, 44px); line-height: 1; background: var(--fondo); border-radius: 16px; }
+  .reloj { height: 16px; background: #F6E7D3; border-radius: 999px; overflow: hidden; }
+  .reloj > i { display: block; height: 100%; width: 100%; background: var(--verde); border-radius: 999px; transform-origin: left; }
+  .leyenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 17px; color: var(--suave); }
+
+  /* Lectura */
+  .puntos { display: inline-flex; gap: 8px; vertical-align: middle; }
+  .puntos i { width: 14px; height: 14px; border-radius: 50%; background: #EAD8C0; }
+  .puntos i.ya { background: var(--verde); }
+  .puntos i.ahora { background: var(--coral); transform: scale(1.25); }
+  .texto {
+    font-size: clamp(22px, 5.6vw, 30px); line-height: 1.95; word-spacing: .16em; letter-spacing: .02em;
+    text-align: left; background: #FFFDF8; border-radius: var(--radio); padding: 22px 20px; box-shadow: var(--sombra);
+    border: 3px solid transparent; transition: border-color .2s;
+  }
+  .texto.leyendo { border-color: var(--coral); }
+  .borroso { filter: blur(7px); user-select: none; }
+  .pal { border-radius: 8px; padding: 1px 2px; }
+  .marcando .pal { cursor: pointer; text-decoration: underline dotted #C9B79F; text-underline-offset: 6px; }
+  .pal.mal { background: #FFE0D8; color: #B23A1E; text-decoration: line-through 3px #E0502F; }
+  .cronometro { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .vivo { display: inline-block; width: 12px; height: 12px; background: var(--coral); border-radius: 50%; margin-right: 6px; animation: late 1s infinite; }
+  @keyframes late { 50% { opacity: .2; } }
+  .contador { display: flex; align-items: center; justify-content: center; gap: 16px; }
+  .contador button { width: 60px; height: 60px; border-radius: 50%; border: 0; font: inherit; font-size: 30px; font-weight: 800; background: var(--blanco); box-shadow: var(--sombra); cursor: pointer; color: var(--tinta); }
+  .contador b { font-size: 40px; min-width: 56px; text-align: center; }
+
+  /* Resultados */
+  .barras { display: grid; gap: 12px; }
+  .fila-barra { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 10px; font-size: 16px; }
+  .pista { background: #F6E7D3; border-radius: 12px; height: 38px; overflow: hidden; }
+  .pista > i { display: flex; align-items: center; justify-content: flex-end; height: 100%; padding-right: 10px; border-radius: 12px; font-style: normal; font-weight: 800; color: var(--blanco); background: var(--violeta); min-width: 64px; transition: width .6s; white-space: nowrap; font-size: 16px; }
+  .pista > i.mejor { background: var(--verde); }
+  .grande-estrella { font-size: 96px; line-height: 1; display: inline-block; animation: pop .6s cubic-bezier(.2, 1.6, .4, 1); }
+  @keyframes pop { from { transform: scale(0) rotate(-30deg); } }
+  audio { width: 100%; }
+
+  /* Lluvia de estrellas */
+  .lluvia { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 9; }
+  .lluvia span { position: absolute; top: -40px; font-size: 26px; animation: cae 1.8s ease-in forwards; }
+  @keyframes cae { to { transform: translateY(110vh) rotate(360deg); opacity: .6; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+  .fijo { position: sticky; bottom: max(14px, env(safe-area-inset-bottom)); z-index: 2; }
+  .oculto { display: none !important; }
+</style>
+</head>
+<body>
+<main id="app" aria-live="polite"></main>
+
+<script>
+"use strict";
+
+// ---------- Textos (originales, escritos para este juego) ----------
+const NIVELES = {
+  1: { nombre: "Nivel 1", sub: "2.º y 3.º grado", textos: [
+    { id: "1-1", emoji: "🐶", titulo: "El perro Toto",
+      texto: "Toto es un perro marrón. Vive en una casa con patio. Todas las mañanas espera a Sofi en la puerta. Cuando ella vuelve de la escuela, Toto mueve la cola y salta. Después juegan con una pelota roja hasta que se hace de noche." },
+    { id: "1-2", emoji: "🛝", titulo: "La plaza",
+      texto: "Los sábados vamos a la plaza con mi abuela. Ella lleva mate y galletitas. Yo subo al tobogán y a la hamaca. Mi hermano juega a la pelota con sus amigos. Cuando el sol se esconde, volvemos caminando a casa." },
+    { id: "1-3", emoji: "🥟", titulo: "Las empanadas",
+      texto: "Hoy mamá hace empanadas. Yo la ayudo a cerrar los bordes con un tenedor. Algunas son de carne y otras de queso. El horno está muy caliente. Cuando salen doradas, las ponemos en la mesa. ¡Qué rico olor tiene la cocina!" },
+    { id: "1-4", emoji: "🐱", titulo: "El gato y la lluvia",
+      texto: "Afuera llueve mucho. Mi gato Lolo mira por la ventana. Las gotas golpean el vidrio y él quiere atraparlas. Salta, pero no puede. Entonces se acuesta en la cama, cerca de mí. Juntos escuchamos la lluvia hasta dormirnos." },
+    { id: "1-5", emoji: "🎂", titulo: "El cumpleaños de Juli",
+      texto: "Juli cumple ocho años. En la fiesta hay globos de colores y una torta de chocolate. Sus amigos le cantan el feliz cumpleaños. Juli cierra los ojos, pide un deseo y sopla las velas. Todos aplauden y comen torta." }
+  ]},
+  2: { nombre: "Nivel 2", sub: "4.º a 6.º grado", textos: [
+    { id: "2-1", emoji: "⛰️", titulo: "El cerro San Javier",
+      texto: "El domingo subimos al cerro San Javier con mi familia. El camino tenía muchas curvas y desde la ventanilla se veía toda la ciudad, cada vez más chiquita. Arriba hacía frío y soplaba un viento fuerte. Vimos parapentes de colores que volaban sobre el valle como pájaros gigantes. Mi papá dijo que algún día podríamos probar. Yo no sé si me animaría, pero me encantaría ver el mundo desde allá arriba, sin hacer ruido, igual que un cóndor." },
+    { id: "2-2", emoji: "⚽", titulo: "El partido",
+      texto: "Faltaban dos minutos y el partido seguía empatado. Martina recibió la pelota cerca de la mitad de la cancha. Miró hacia adelante y vio a su amiga Ana sola, del otro lado. Le hizo un pase largo y Ana corrió con todas sus fuerzas. La arquera salió a buscarla, pero ella pateó despacito, por arriba. La pelota tocó el travesaño y entró. Todo el equipo gritó de alegría. Ese día aprendieron que un buen pase vale tanto como un gol." },
+    { id: "2-3", emoji: "🥕", titulo: "La huerta de la escuela",
+      texto: "En nuestra escuela tenemos una huerta. Cada grado cuida una parte. Nosotros sembramos lechuga, tomates y zanahorias. Todos los días alguien se encarga de regar y de sacar los yuyos. Al principio no pasaba nada y pensamos que las semillas no iban a crecer. Pero una mañana aparecieron unas hojitas verdes muy pequeñas. Ahora las plantas están grandes y ya cosechamos las primeras lechugas. La seño dice que la paciencia también se siembra." },
+    { id: "2-4", emoji: "🤖", titulo: "El robot de Tomás",
+      texto: "Tomás armó un robot con cajas de cartón, tapitas y dos linternas viejas. Le puso de nombre Chispa. Chispa no caminaba ni hablaba, pero Tomás le contaba todo lo que le pasaba en el día. Una noche se cortó la luz en todo el barrio. Su hermanita tenía miedo de la oscuridad. Entonces Tomás encendió las linternas, que eran los ojos de Chispa. La pieza se llenó de luz y su hermanita sonrió. Desde ese día, Chispa es el robot más valiente de la casa." },
+    { id: "2-5", emoji: "🚂", titulo: "Viaje en tren",
+      texto: "Durante las vacaciones viajamos en tren a visitar a mis tíos. El viaje duró toda la noche. Por la ventanilla veía pasar campos, vacas y pueblos con pocas luces. Mi mamá me prestó una linterna para leer una historieta. A la madrugada, el tren hizo un ruido largo y frenó en una estación muy antigua. Mis tíos nos esperaban en el andén con una bandeja de facturas calentitas. Fue el mejor desayuno de mi vida." }
+  ]}
+};
+const DIBUJOS = [["🍎", "manzana"], ["🐶", "perro"], ["⭐", "estrella"], ["🚗", "auto"], ["🏠", "casa"]];
+const LECTURAS = 3;
+const TEXTOS_MEDALLA = 5;
+const SEG_CALENTAMIENTO = 30;
+
+// ---------- Datos guardados en el celular ----------
+const CLAVE = "mi-record-lector-v1";
+let db;
+try { db = JSON.parse(localStorage.getItem(CLAVE)) || null; } catch (e) { db = null; }
+if (!db || !db.jugadores) db = { jugadores: {}, actual: null };
+function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(db)); } catch (e) {} }
+function jugador() { return db.jugadores[db.actual]; }
+function datosTexto(id) {
+  const j = jugador();
+  if (!j.textos[id]) j.textos[id] = { estrellas: 0, mejor: null, hecho: false };
+  return j.textos[id];
+}
+function textosHechos(j) { return Object.values(j.textos).filter(t => t.hecho).length; }
+function estrellasTotales(j) { return Object.values(j.textos).reduce((s, t) => s + t.estrellas, 0); }
+function buscarTexto(id) {
+  for (const n of Object.values(NIVELES)) { const t = n.textos.find(x => x.id === id); if (t) return t; }
+}
+
+// ---------- Utilidades ----------
+const app = document.getElementById("app");
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function pintar(html) { app.innerHTML = html; window.scrollTo(0, 0); const f = app.querySelector("[data-foco]"); if (f) f.focus({ preventScroll: true, focusVisible: f.tagName === "INPUT" }); }
+function $(sel) { return app.querySelector(sel); }
+function estrellasHTML(n) { let s = ""; for (let i = 0; i < LECTURAS; i++) s += i < n ? "⭐" : '<span class="gris">⭐</span>'; return s; }
+function palabras(texto) { return texto.trim().split(/\s+/); }
+function segs(x) { return Math.round(x) + " s"; }
+function barra(volver, derecha) {
+  return `<div class="barra">${volver ? `<button class="volver" aria-label="Volver" data-accion="${volver}">←</button>` : "<span></span>"}${derecha || ""}</div>`;
+}
+let alClick = {};
+app.addEventListener("click", e => {
+  const b = e.target.closest("[data-accion]");
+  if (b && alClick[b.dataset.accion]) alClick[b.dataset.accion](b);
+});
+
+function campanita(notas) {
+  try {
+    const c = new (window.AudioContext || window.webkitAudioContext)();
+    (notas || [660, 880, 1320]).forEach((f, i) => {
+      const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + i * 0.12;
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+      o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.45);
+    });
+  } catch (e) {}
+}
+function lluviaDeEstrellas() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const d = document.createElement("div"); d.className = "lluvia";
+  for (let i = 0; i < 28; i++) {
+    const s = document.createElement("span");
+    s.textContent = i % 3 ? "⭐" : "✨";
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.animationDelay = Math.random() * 0.6 + "s";
+    d.appendChild(s);
+  }
+  document.body.appendChild(d); setTimeout(() => d.remove(), 2600);
+}
+
+// ---------- Micrófono (opcional: si no hay permiso, el juego sigue sin grabar) ----------
+let micStream = null, grabador = null, trozos = [];
+async function empezarGrabacion() {
+  if (!navigator.mediaDevices || typeof MediaRecorder === "undefined") return false;
+  try {
+    if (!micStream) micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    grabador = new MediaRecorder(micStream); trozos = [];
+    grabador.ondataavailable = e => { if (e.data && e.data.size) trozos.push(e.data); };
+    grabador.start();
+    return true;
+  } catch (e) { return false; }
+}
+function pararGrabacion() {
+  return new Promise(res => {
+    if (!grabador || grabador.state === "inactive") return res(null);
+    grabador.onstop = () => res(trozos.length ? URL.createObjectURL(new Blob(trozos, { type: grabador.mimeType || "audio/webm" })) : null);
+    grabador.stop();
+  });
+}
+function soltarMicrofono() {
+  if (grabador && grabador.state !== "inactive") { try { grabador.stop(); } catch (e) {} }
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+}
+
+let temporizador = null;
+function frenarTemporizador() { if (temporizador) { clearInterval(temporizador); temporizador = null; } }
+
+// ---------- Pantalla: inicio ----------
+function inicio() {
+  frenarTemporizador(); soltarMicrofono();
+  const nombres = Object.keys(db.jugadores);
+  alClick = {
+    jugador: b => { db.actual = b.dataset.nombre; guardar(); mapa(); },
+    nuevo: () => nuevoJugador(),
+    ayuda: () => ayuda("inicio")
+  };
+  pintar(`
+    <div class="pila centro" style="padding-top:24px">
+      <div class="mascota" aria-hidden="true">🦉</div>
+      <h1>Mi Récord Lector</h1>
+      <p class="globo">¡Hola! Soy Lu. Vas a leer un cuento <b>3 veces</b>.<br>¡Cada vez, tratá de superar tu récord!</p>
+      ${nombres.length ? `
+        <h2 style="font-size:22px;margin-top:28px">¿Quién juega?</h2>
+        <div class="chips">${nombres.map(n => `<button class="chip" data-accion="jugador" data-nombre="${esc(n)}">${esc(n)}</button>`).join("")}</div>
+        <button class="btn blanco" data-accion="nuevo">＋ Nuevo jugador</button>
+      ` : `<button class="btn" data-accion="nuevo" data-foco>¡A jugar!</button>`}
+      <button class="link" data-accion="ayuda">ℹ️ Cómo se juega (para grandes)</button>
+    </div>`);
+}
+
+function nuevoJugador() {
+  let nivel = 1;
+  alClick = {
+    volver: () => inicio(),
+    nivel: b => {
+      nivel = +b.dataset.n;
+      app.querySelectorAll("[data-accion=nivel]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    },
+    listo: () => {
+      const nombre = $("#nombre").value.trim().slice(0, 20);
+      if (!nombre) { $("#nombre").focus(); $("#aviso").classList.remove("oculto"); return; }
+      if (!db.jugadores[nombre]) db.jugadores[nombre] = { nivel, textos: {} };
+      db.actual = nombre; guardar(); mapa();
+    }
+  };
+  pintar(`
+    ${barra("volver")}
+    <div class="pila">
+      <h2>¿Cómo te llamás?</h2>
+      <input id="nombre" type="text" autocomplete="off" maxlength="20" placeholder="Tu nombre" aria-label="Tu nombre" data-foco>
+      <p id="aviso" class="chico oculto">Escribí tu nombre para seguir.</p>
+      <h2 style="margin-top:26px">¿En qué grado estás?</h2>
+      <div class="pestanas" style="margin:0">
+        <button data-accion="nivel" data-n="1" aria-pressed="true">2.º o 3.º<small>Nivel 1</small></button>
+        <button data-accion="nivel" data-n="2" aria-pressed="false">4.º, 5.º o 6.º<small>Nivel 2</small></button>
+      </div>
+      <button class="btn" data-accion="listo" style="margin-top:28px">Listo ➜</button>
+    </div>`);
+  $("#nombre").addEventListener("keydown", e => { if (e.key === "Enter") alClick.listo(); });
+}
+
+// ---------- Pantalla: mapa de cuentos ----------
+function mapa() {
+  frenarTemporizador(); soltarMicrofono();
+  const j = jugador();
+  if (!j) return inicio();
+  const nivel = NIVELES[j.nivel];
+  const hechos = textosHechos(j);
+  const medalla = hechos >= TEXTOS_MEDALLA;
+  alClick = {
+    volver: () => inicio(),
+    nivel: b => { j.nivel = +b.dataset.n; guardar(); mapa(); },
+    texto: b => calentamiento(b.dataset.id),
+    ayuda: () => ayuda("mapa")
+  };
+  pintar(`
+    ${barra("volver", `<span class="ficha">⭐ ${estrellasTotales(j)} · ${esc(db.actual)}</span>`)}
+    <div class="caja medalla" style="margin-bottom:18px">
+      <span class="icono ${medalla ? "" : "gris"}" aria-hidden="true">🏅</span>
+      <div style="flex:1">
+        <b>${medalla ? "¡Ganaste la medalla de Gran Lector!" : `Medalla: ${hechos} de ${TEXTOS_MEDALLA} cuentos`}</b>
+        <div class="progreso" aria-hidden="true"><i style="width:${Math.min(100, hechos / TEXTOS_MEDALLA * 100)}%"></i></div>
+      </div>
+    </div>
+    <div class="pestanas">
+      ${Object.entries(NIVELES).map(([n, v]) => `<button data-accion="nivel" data-n="${n}" aria-pressed="${+n === j.nivel}">${v.nombre}<small>${v.sub}</small></button>`).join("")}
+    </div>
+    <h2 style="margin-bottom:14px">Elegí un cuento</h2>
+    ${nivel.textos.map(t => {
+      const d = j.textos[t.id] || { estrellas: 0, mejor: null };
+      return `<button class="tarjeta" data-accion="texto" data-id="${t.id}">
+        <span class="emoji" aria-hidden="true">${t.emoji}</span>
+        <span style="flex:1">
+          <span class="tit">${t.titulo}</span><br>
+          <span class="estrellas" aria-label="${d.estrellas} estrellas">${estrellasHTML(d.estrellas)}</span>
+          ${d.mejor ? `<span class="chico"> · récord ${segs(d.mejor)}</span>` : ""}
+        </span>
+        <span aria-hidden="true" style="font-size:26px">›</span>
+      </button>`;
+    }).join("")}
+    <p class="centro" style="margin-top:18px"><button class="link" data-accion="ayuda">ℹ️ Cómo se juega</button></p>`);
+}
+
+// ---------- Pantalla: calentamiento (30 s nombrando dibujos) ----------
+function calentamiento(id) {
+  const t = buscarTexto(id);
+  const fichas = [];
+  for (let i = 0; i < 4; i++) {
+    const fila = DIBUJOS.slice().sort(() => Math.random() - 0.5);
+    fichas.push(...fila);
+  }
+  alClick = {
+    volver: () => mapa(),
+    saltar: () => lectura(id),
+    empezar: () => {
+      $("#empezar").classList.add("oculto");
+      $("#saltar").textContent = "Ya terminé ➜";
+      $("#saltar").className = "btn verde";
+      $("#grilla").classList.remove("borroso");
+      const ini = performance.now(), barraT = $("#reloj");
+      frenarTemporizador();
+      temporizador = setInterval(() => {
+        const r = Math.max(0, 1 - (performance.now() - ini) / (SEG_CALENTAMIENTO * 1000));
+        barraT.style.transform = `scaleX(${r})`;
+        if (r <= 0) { frenarTemporizador(); campanita([523, 659]); lectura(id); }
+      }, 100);
+    }
+  };
+  pintar(`
+    ${barra("volver", `<span class="ficha">${t.emoji} ${t.titulo}</span>`)}
+    <div class="pila">
+      <h2>🔥 Calentamiento</h2>
+      <p>Decí en voz alta el nombre de cada dibujo, <b>fila por fila, de izquierda a derecha</b>. ¡Rápido, pero sin equivocarte!</p>
+      <div class="leyenda">${DIBUJOS.map(([e, n]) => `<span>${e} ${n}</span>`).join("")}</div>
+      <div class="reloj" aria-hidden="true"><i id="reloj"></i></div>
+      <div class="caja"><div id="grilla" class="grilla borroso">${fichas.map(([e, n]) => `<span role="img" aria-label="${n}">${e}</span>`).join("")}</div></div>
+      <button id="empezar" class="btn verde" data-accion="empezar" data-foco>▶ Empezar (30 segundos)</button>
+      <button id="saltar" class="link" data-accion="saltar" style="width:100%">Saltar el calentamiento</button>
+    </div>`);
+}
+
+// ---------- Pantalla: lectura (3 veces el mismo texto) ----------
+function lectura(id) {
+  frenarTemporizador();
+  const t = buscarTexto(id);
+  const pals = palabras(t.texto);
+  const intentos = []; // { seg, errores, audio }
+  let n = 0, inicioT = 0, grabando = false, malas = new Set(), extra = 0;
+
+  function puntos() {
+    let s = ""; for (let i = 0; i < LECTURAS; i++) s += `<i class="${i < n ? "ya" : i === n ? "ahora" : ""}"></i>`;
+    return `<span class="puntos" aria-label="Lectura ${n + 1} de ${LECTURAS}">${s}</span>`;
+  }
+  function textoHTML(clase) {
+    return `<div id="texto" class="texto ${clase || ""}">${pals.map((p, i) => `<span class="pal${malas.has(i) ? " mal" : ""}" data-i="${i}">${esc(p)}</span>`).join(" ")}</div>`;
+  }
+
+  function listo() {
+    alClick = { volver: () => mapa(), empezar: empezar };
+    pintar(`
+      ${barra("volver", `<span class="ficha">${puntos()}&nbsp; Lectura ${n + 1} de ${LECTURAS}</span>`)}
+      <div class="pila">
+        <h2>${t.emoji} ${t.titulo}</h2>
+        <p>${n === 0 ? "Cuando estés listo, tocá <b>Empezar</b> y leé el cuento en voz alta." : `Tu tiempo para superar: <b>${segs(intentos[n - 1].seg)}</b>. ¡Vos podés!`}</p>
+        ${textoHTML("borroso")}
+        <button class="btn" data-accion="empezar" data-foco>▶ Empezar a leer</button>
+        <p class="chico centro">El cuento aparece cuando tocás Empezar.</p>
+      </div>`);
+  }
+
+  async function empezar() {
+    const b = $("[data-accion=empezar]"); b.disabled = true; b.textContent = "Preparando…";
+    grabando = await empezarGrabacion();
+    malas = new Set(); extra = 0;
+    inicioT = performance.now();
+    alClick = { volver: () => mapa(), termine: termine };
+    pintar(`
+      ${barra("volver", `<span class="ficha"><span class="vivo" aria-hidden="true"></span>${grabando ? "Grabando" : "Leyendo"}</span>`)}
+      <div class="pila">
+        <div class="centro cronometro" id="crono" aria-live="off">0 s</div>
+        ${textoHTML("leyendo")}
+        <button class="btn verde fijo" data-accion="termine" data-foco>■ ¡Terminé!</button>
+      </div>`);
+    temporizador = setInterval(() => { const c = $("#crono"); if (c) c.textContent = segs((performance.now() - inicioT) / 1000); }, 250);
+  }
+
+  async function termine() {
+    const seg = (performance.now() - inicioT) / 1000;
+    frenarTemporizador();
+    const audio = grabando ? await pararGrabacion() : null;
+    intentos[n] = { seg, errores: 0, audio };
+    marcarErrores();
+  }
+
+  function marcarErrores() {
+    alClick = {
+      volver: () => mapa(),
+      mas: () => { extra++; contar(); },
+      menos: () => { if (extra > 0) extra--; contar(); },
+      ver: () => { intentos[n].errores = malas.size + extra; resultado(); }
+    };
+    pintar(`
+      ${barra("volver", `<span class="ficha">⏱ ${segs(intentos[n].seg)}</span>`)}
+      <div class="pila">
+        <h2>¿Hubo palabras difíciles?</h2>
+        <p>El <b>entrenador</b> (un compañero o la seño) toca las palabras que se leyeron mal o se saltearon. Si no hubo, tocá <b>Ver mi resultado</b>.</p>
+        <div class="marcando">${textoHTML()}</div>
+        <div class="caja centro">
+          <p class="chico" style="margin-bottom:8px">Errores en total</p>
+          <div class="contador">
+            <button data-accion="menos" aria-label="Uno menos">−</button>
+            <b id="cuenta">0</b>
+            <button data-accion="mas" aria-label="Uno más">＋</button>
+          </div>
+          <p class="chico" style="margin-top:8px">Con ＋ sumás errores que no son una palabra (por ejemplo, saltear un renglón).</p>
+        </div>
+        <button class="btn violeta" data-accion="ver" data-foco>Ver mi resultado ➜</button>
+      </div>`);
+    $("#texto").addEventListener("click", e => {
+      const p = e.target.closest(".pal"); if (!p) return;
+      const i = +p.dataset.i;
+      malas.has(i) ? malas.delete(i) : malas.add(i);
+      p.classList.toggle("mal"); contar();
+    });
+    function contar() { $("#cuenta").textContent = malas.size + extra; }
+  }
+
+  function ganoEstrella(i) {
+    if (i === 0) return true; // la primera lectura marca el récord
+    const a = intentos[i], b = intentos[i - 1];
+    return a.seg < b.seg && a.errores <= b.errores;
+  }
+
+  function resultado() {
+    const yo = intentos[n], gano = ganoEstrella(n);
+    yo.estrella = gano;
+    const max = Math.max(...intentos.map(x => x.seg));
+    const mejorSeg = Math.min(...intentos.map(x => x.seg));
+    let mensaje;
+    if (n === 0) mensaje = "¡Ya tenés tu primera marca! Ahora tratá de leerlo un poquito más rápido.";
+    else if (gano) mensaje = intentos[n - 1].seg - yo.seg >= 1 ? `¡Superaste tu tiempo por ${segs(intentos[n - 1].seg - yo.seg)}!` : "¡Superaste tu tiempo! Por muy poquito, pero cuenta.";
+    else if (yo.seg < intentos[n - 1].seg) mensaje = "¡Fuiste más rápido! Pero hubo más errores. Probá leer con más cuidado.";
+    else mensaje = "¡Casi! Respirá, leé tranquilo y probá de nuevo.";
+    const ultima = n === LECTURAS - 1;
+    alClick = {
+      volver: () => mapa(),
+      otra: () => { n++; listo(); },
+      fin: () => final()
+    };
+    pintar(`
+      ${barra("volver", `<span class="ficha">${puntos()}</span>`)}
+      <div class="pila centro">
+        <div class="grande-estrella" aria-hidden="true">${gano ? "⭐" : "💪"}</div>
+        <h2>${gano ? "¡Ganaste una estrella!" : "¡Seguí así!"}</h2>
+        <p class="globo">${mensaje}</p>
+        <div class="caja barras" style="text-align:left">
+          ${intentos.map((x, i) => `<div class="fila-barra">
+            <span>Lectura ${i + 1}${x.estrella ? " ⭐" : ""}</span>
+            <span class="pista"><i class="${x.seg === mejorSeg ? "mejor" : ""}" style="width:${Math.max(18, x.seg / max * 100)}%">${segs(x.seg)} · ${x.errores} err.</i></span>
+          </div>`).join("")}
+        </div>
+        ${yo.audio ? `<div class="caja" style="text-align:left"><p style="margin-bottom:10px"><b>🎧 Escuchate leer</b></p><audio controls src="${yo.audio}"></audio></div>` : ""}
+        ${ultima
+          ? `<button class="btn verde" data-accion="fin" data-foco>Ver cómo me fue ➜</button>`
+          : `<button class="btn" data-accion="otra" data-foco>Leer otra vez (${n + 2} de ${LECTURAS}) ➜</button>`}
+      </div>`);
+    if (gano) { campanita(); lluviaDeEstrellas(); }
+  }
+
+  function final() {
+    soltarMicrofono();
+    const j = jugador(), d = datosTexto(id);
+    const estrellas = intentos.filter(x => x.estrella).length;
+    const antesHechos = textosHechos(j);
+    const mejor = Math.min(...intentos.map(x => x.seg));
+    const recordNuevo = d.mejor === null || mejor < d.mejor;
+    d.estrellas = Math.max(d.estrellas, estrellas);
+    d.mejor = d.mejor === null ? mejor : Math.min(d.mejor, mejor);
+    d.hecho = true;
+    guardar();
+    const nuevaMedalla = antesHechos < TEXTOS_MEDALLA && textosHechos(j) >= TEXTOS_MEDALLA;
+    const ppm = Math.round(pals.length / (intentos[LECTURAS - 1].seg / 60));
+    alClick = { volver: () => mapa(), mapa: () => mapa(), repetir: () => lectura(id) };
+    pintar(`
+      ${barra("volver")}
+      <div class="pila centro">
+        <div class="grande-estrella" aria-hidden="true">${nuevaMedalla ? "🏅" : "🏆"}</div>
+        <h2>${nuevaMedalla ? "¡Medalla de Gran Lector!" : `¡Terminaste “${t.titulo}”!`}</h2>
+        <p class="estrellas" style="font-size:44px" aria-label="${estrellas} de ${LECTURAS} estrellas">${estrellasHTML(estrellas)}</p>
+        <p class="globo">${estrellas === LECTURAS ? "¡Las 3 estrellas! Mejoraste en cada lectura." : "Cada vez que leés el mismo cuento, tu lectura se pone más fuerte."}
+          ${recordNuevo ? "<br><b>¡Nuevo récord en este cuento!</b>" : ""}</p>
+        <div class="caja" style="text-align:left">
+          <p>⏱ Primera lectura: <b>${segs(intentos[0].seg)}</b> → última: <b>${segs(intentos[LECTURAS - 1].seg)}</b></p>
+          <p class="chico" style="margin-top:6px">Para la seño: ${pals.length} palabras · última lectura ${ppm} palabras por minuto · errores ${intentos.map(x => x.errores).join(" / ")}</p>
+        </div>
+        <button class="btn" data-accion="mapa" data-foco>Elegir otro cuento ➜</button>
+        <button class="link" data-accion="repetir">Jugar este cuento de nuevo</button>
+      </div>`);
+    if (estrellas > 0) { campanita([523, 659, 784, 1047]); lluviaDeEstrellas(); }
+  }
+
+  listo();
+}
+
+// ---------- Pantalla: reglas (para grandes) ----------
+function ayuda(desde) {
+  alClick = { volver: () => (desde === "mapa" ? mapa() : inicio()) };
+  pintar(`
+    ${barra("volver")}
+    <div class="caja pila">
+      <h2>Cómo se juega</h2>
+      <p><b>Objetivo:</b> leer el mismo cuento 3 veces en voz alta y que cada lectura salga más rápida, sin más errores.</p>
+      <p><b>Jugadores:</b> 1 chico contra su propio récord. En parejas: uno lee y el otro es el <b>entrenador</b>, que marca los errores tocando las palabras; después cambian de rol.</p>
+      <p><b>Orden de cada ronda:</b></p>
+      <ol style="margin:0;padding-left:22px;line-height:1.6">
+        <li>Calentamiento de 30 segundos: nombrar dibujos en voz alta (se puede saltear).</li>
+        <li>Lectura 1: marca el primer tiempo y da la primera estrella.</li>
+        <li>Lecturas 2 y 3: estrella si el tiempo baja y los errores no suben.</li>
+        <li>Después de cada lectura, el chico ve su barra de tiempo y puede escucharse.</li>
+      </ol>
+      <p><b>Para ganar:</b> 3 estrellas en un cuento es una ronda perfecta. Al terminar 5 cuentos se gana la <b>medalla de Gran Lector</b>.</p>
+      <p><b>Niveles:</b> Nivel 1 (2.º y 3.º grado, textos de unas 45 palabras) y Nivel 2 (4.º a 6.º, unas 85 palabras).</p>
+      <p><b>Elementos:</b> un celular, tablet o computadora con micrófono; auriculares recomendados.</p>
+      <p class="chico">El progreso se guarda solo en este dispositivo. Las grabaciones no se guardan ni se envían a ningún lado: se borran al salir del cuento.</p>
+    </div>`);
+}
+
+if (db.actual && db.jugadores[db.actual]) mapa(); else inicio();
+</script>
+</body>
+</html>
